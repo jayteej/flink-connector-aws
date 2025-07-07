@@ -80,6 +80,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import static org.apache.flink.connector.kinesis.source.config.KinesisSourceConfigOptions.CLIENT_SHUTDOWN_TIMEOUT;
 import static org.apache.flink.connector.kinesis.source.config.KinesisSourceConfigOptions.EFO_CONSUMER_NAME;
 import static org.apache.flink.connector.kinesis.source.config.KinesisSourceConfigOptions.EFO_DESCRIBE_CONSUMER_RETRY_STRATEGY_MAX_ATTEMPTS_OPTION;
 import static org.apache.flink.connector.kinesis.source.config.KinesisSourceConfigOptions.EFO_DESCRIBE_CONSUMER_RETRY_STRATEGY_MAX_DELAY_OPTION;
@@ -279,7 +280,10 @@ public class KinesisStreamsSource<T>
                         KinesisAsyncClient.builder(),
                         KinesisStreamsConfigConstants.BASE_KINESIS_USER_AGENT_PREFIX_FORMAT,
                         KinesisStreamsConfigConstants.KINESIS_CLIENT_USER_AGENT_PREFIX);
-        return new KinesisAsyncStreamProxy(kinesisAsyncClient, asyncHttpClient);
+        return new KinesisAsyncStreamProxy(
+                kinesisAsyncClient, 
+                asyncHttpClient, 
+                consumerConfig.get(CLIENT_SHUTDOWN_TIMEOUT).toMillis());
     }
 
     private KinesisStreamProxy createKinesisStreamProxy(Configuration consumerConfig) {
@@ -319,7 +323,10 @@ public class KinesisStreamsSource<T>
                         overrideBuilder,
                         KinesisStreamsConfigConstants.BASE_KINESIS_USER_AGENT_PREFIX_FORMAT,
                         KinesisStreamsConfigConstants.KINESIS_CLIENT_USER_AGENT_PREFIX);
-        return new KinesisStreamProxy(kinesisClient, httpClient);
+        return new KinesisStreamProxy(
+                kinesisClient, 
+                httpClient, 
+                consumerConfig.get(CLIENT_SHUTDOWN_TIMEOUT).toMillis());
     }
 
     private void setUpDeserializationSchema(SourceReaderContext sourceReaderContext)
